@@ -6,7 +6,7 @@
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 
-<img width="900" height="900" alt="Image" src="https://github.com/user-attachments/assets/cebafb1c-0959-4976-a50a-fd63861af7d0" />
+<img width="653" height="382" alt="Image" src="https://github.com/user-attachments/assets/7241d016-bf9e-4c3d-8762-18a9f39e1b59" />
 
 **Pipeline de Engenharia de Dados End-to-End para Detecção de Fraudes em Transações Financeiras**
 

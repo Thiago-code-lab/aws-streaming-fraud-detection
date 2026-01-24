@@ -50,3 +50,62 @@ resource "aws_kinesis_stream" "transaction_stream" {
   }
 }
 */
+
+# --- Analytics (Glue & Athena) ---
+
+# 1. Banco de Dados Virtual
+resource "aws_glue_catalog_database" "fraud_db" {
+  name = "fraud_detection_db"
+}
+
+# 2. Tabela apontando para o S3 Processed
+resource "aws_glue_catalog_table" "frauds_table" {
+  database_name = aws_glue_catalog_database.fraud_db.name
+  name          = "fraudes_detectadas"
+  
+  table_type = "EXTERNAL_TABLE"
+
+  parameters = {
+    "classification" = "parquet"
+  }
+
+  storage_descriptor {
+    location      = "s3://${aws_s3_bucket.processed_bucket.bucket}/fraudes_detectadas/"
+    input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
+
+    ser_de_info {
+      name                  = "my-stream"
+      serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+      parameters = {
+        "serialization.format" = "1"
+      }
+    }
+
+    # Schema dos dados (Colunas)
+    columns {
+      name = "id_transacao"
+      type = "string"
+    }
+    columns {
+      name = "cliente"
+      type = "string"
+    }
+    columns {
+      name = "valor"
+      type = "double"
+    }
+    columns {
+      name = "estado"
+      type = "string"
+    }
+    columns {
+      name = "timestamp"
+      type = "string"
+    }
+    columns {
+      name = "processed_at"
+      type = "timestamp"  
+    }
+  } 
+} 

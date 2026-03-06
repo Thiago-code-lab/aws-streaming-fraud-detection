@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AWS Fraud Detection Pipeline · Thiago Cardoso Davi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --g:#00FF88;--g2:#00CC66;--g3:rgba(0,255,136,.1);
+    --red:#FF3B3B;--red2:#FF6B6B;--gold:#ffd54f;
+    --bg:#040A06;--s1:#070F09;--s2:#0B160D;--s3:#0F1E12;
+    --text:#C8F0D8;--muted:#4D7A5A;--border:rgba(0,255,136,.12);
+    --D:'Orbitron',monospace;--B:'Rajdhani',sans-serif;--M:'Share Tech Mono',monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--B);line-height:1.6;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.055) 3px,rgba(0,0,0,.055) 4px)}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(4,10,6,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+  .nav-logo{display:flex;align-items:center;gap:.8rem;text-decoration:none}
+  .nav-badge{font-family:var(--D);font-size:.6rem;font-weight:900;color:#000;background:var(--g);padding:.3rem .7rem;border-radius:3px;letter-spacing:2px}
+  .nav-title{font-family:var(--M);font-size:.75rem;color:var(--g);letter-spacing:2px}
+  .nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+  .nav-links a{font-family:var(--M);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s}
+  .nav-links a:hover{color:var(--g)}
+  .nav-gh{color:var(--g)!important;border:1px solid var(--border);padding:.32rem .9rem;border-radius:3px}
+  .nav-gh:hover{background:var(--g3)!important;border-color:var(--g)!important}
+
+  #mc{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.07;pointer-events:none}
+
+  .hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:4rem;padding:7rem 3rem 4rem;position:relative;z-index:1}
+  .hero-content{position:relative}
+  .hero-status{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--M);font-size:.62rem;letter-spacing:3px;color:var(--g);text-transform:uppercase;margin-bottom:1.5rem;border:1px solid var(--border);padding:.4rem 1rem;border-radius:3px;background:var(--g3)}
+  .s-blink{width:7px;height:7px;border-radius:50%;background:var(--g);animation:bl 1.2s step-end infinite}
+  @keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+  .hero-title{font-family:var(--D);font-size:clamp(1.6rem,3.2vw,2.8rem);font-weight:900;line-height:1.05;letter-spacing:2px;color:#fff;margin-bottom:.5rem;animation:fu .7s ease both}
+  .hero-title .ac{color:var(--g);display:block}
+  .hero-title .rc{color:var(--red);display:block}
+  @keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .hero-desc{font-size:.95rem;color:var(--muted);max-width:480px;line-height:1.8;margin-bottom:2rem;animation:fu .7s ease .15s both}
+  .hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;animation:fu .7s ease .25s both}
+  .btn{font-family:var(--M);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:.8rem 1.8rem;border-radius:3px;text-decoration:none;display:inline-flex;align-items:center;gap:.6rem;transition:all .25s;cursor:pointer;border:none}
+  .btn-g{background:var(--g);color:#000;font-weight:700;box-shadow:0 0 20px rgba(0,255,136,.25)}
+  .btn-g:hover{background:#33ffaa;box-shadow:0 0 40px rgba(0,255,136,.5);transform:translateY(-2px)}
+  .btn-o{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn-o:hover{border-color:var(--g);color:var(--g);transform:translateY(-2px)}
+
+  .hero-panel{display:flex;flex-direction:column;gap:.9rem}
+  .p-head{font-family:var(--M);font-size:.6rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem}
+  .p-head::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);animation:bl 1.2s step-end infinite}
+  .mc{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:1.1rem 1.4rem;position:relative;overflow:hidden;animation:si .6s ease both}
+  .mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--g)}
+  .mc.rc::before{background:var(--red)}
+  @keyframes si{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+  .mc:nth-child(1){animation-delay:.1s}.mc:nth-child(2){animation-delay:.2s}.mc:nth-child(3){animation-delay:.25s}.mc:nth-child(4){animation-delay:.3s}.mc:nth-child(5){animation-delay:.35s}
+  .ml{font-family:var(--M);font-size:.58rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
+  .mv{font-family:var(--D);font-size:1.9rem;color:#fff;line-height:1;font-weight:900}
+  .mv.green{color:var(--g)}.mv.red{color:var(--red)}.mv.gold{color:var(--gold);font-size:1.6rem}
+  .ms{font-family:var(--M);font-size:.6rem;color:var(--muted);margin-top:.25rem}
+  .mb{height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-top:.6rem}
+  .mf{height:100%;border-radius:2px;animation:bg .9s ease both;transform-origin:left}
+  .mf.g{background:linear-gradient(90deg,var(--g2),var(--g))}
+  .mf.r{background:linear-gradient(90deg,#990000,var(--red))}
+  .mf.y{background:linear-gradient(90deg,#cc8800,var(--gold))}
+  @keyframes bg{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .mr{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+
+  section{padding:6rem 3rem;position:relative;z-index:1}
+  .sl{font-family:var(--M);font-size:.6rem;letter-spacing:4px;color:var(--g);text-transform:uppercase;margin-bottom:.7rem;display:flex;align-items:center;gap:.7rem}
+  .sl::before{content:'';display:block;width:18px;height:1px;background:var(--g)}
+  .st{font-family:var(--D);font-size:clamp(1.4rem,3vw,2.6rem);font-weight:900;letter-spacing:2px;color:#fff;margin-bottom:1rem}
+  .sd{font-size:.92rem;color:var(--muted);max-width:560px;line-height:1.8}
+
+  .arch-s{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .arch-flow{margin-top:4rem;display:flex;align-items:stretch;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .as{flex:1;background:var(--s2);padding:1.8rem 1.2rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.7rem;position:relative;transition:background .25s}
+  .as:hover{background:var(--s3)}
+  .as:not(:last-child)::after{content:'▶';position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--g);font-size:.85rem;z-index:2;background:var(--s2);padding:.3rem 0}
+  .ai{width:50px;height:50px;border-radius:50%;background:var(--s3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;transition:all .3s}
+  .as:hover .ai{border-color:var(--g);box-shadow:0 0 20px var(--g3)}
+  .an{font-family:var(--D);font-size:.62rem;font-weight:700;color:#fff;letter-spacing:1px}
+  .at{font-family:var(--M);font-size:.55rem;color:var(--g);letter-spacing:1px}
+  .ad{font-family:var(--M);font-size:.57rem;color:var(--muted);line-height:1.5}
+
+  .term{margin-top:3rem;background:#020804;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .tb{background:var(--s3);padding:.65rem 1.2rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
+  .td2{width:10px;height:10px;border-radius:50%}
+  .dr{background:#ff5f56}.dy{background:#ffbd2e}.dg{background:#27c93f}
+  .tt{font-family:var(--M);font-size:.6rem;color:var(--muted);letter-spacing:2px;margin-left:auto}
+  .tbody{padding:1.4rem 2rem;font-family:var(--M);font-size:.76rem;line-height:2;color:#7aba8a;overflow-x:auto}
+  .tp{color:var(--g)}.tc{color:#e8f5e9}.tok{color:var(--g)}.tw{color:var(--gold)}.te{color:var(--red)}.tm{color:#3d6b49}.tda{color:#80cbc4}
+
+  .sg{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:4rem;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+  .sc{background:var(--s2);padding:2rem 1.4rem;text-align:center;transition:background .2s}
+  .sc:hover{background:var(--s3)}
+  .si2{font-size:2rem;margin-bottom:.8rem;display:block}
+  .sn{font-family:var(--D);font-size:.72rem;font-weight:700;color:#fff;margin-bottom:.3rem;letter-spacing:1px}
+  .sr{font-family:var(--M);font-size:.58rem;color:var(--g);letter-spacing:1px}
+  .stags{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:center;margin-top:.7rem}
+  .stag{font-family:var(--M);font-size:.52rem;padding:.15rem .5rem;background:var(--g3);border:1px solid rgba(0,255,136,.2);color:var(--g);border-radius:2px;letter-spacing:1px}
+
+  .rules-s{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .rg{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:4rem}
+  .rc2{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2rem;position:relative;overflow:hidden;transition:all .3s}
+  .rc2:hover{border-color:rgba(255,59,59,.35);transform:translateY(-4px)}
+  .rc2.safe{border-color:rgba(0,255,136,.12)}.rc2.safe:hover{border-color:rgba(0,255,136,.4)}
+  .rbadge{font-family:var(--M);font-size:.55rem;letter-spacing:2px;text-transform:uppercase;padding:.25rem .8rem;border-radius:3px;display:inline-block;margin-bottom:.8rem}
+  .bf{background:rgba(255,59,59,.15);border:1px solid rgba(255,59,59,.3);color:var(--red)}
+  .bs{background:var(--g3);border:1px solid rgba(0,255,136,.25);color:var(--g)}
+  .rt{font-family:var(--D);font-size:.85rem;font-weight:700;color:#fff;margin-bottom:1rem;letter-spacing:1px}
+  .rcode{font-family:var(--M);font-size:.72rem;background:#020804;border:1px solid var(--border);border-radius:4px;padding:.9rem 1.1rem;color:#80cbc4;line-height:1.8;margin:.8rem 0}
+  .kor{color:var(--red)}.kand{color:var(--gold)}.kstr{color:#a5d6a7}.knum{color:#ce93d8}.kcm{color:#3d6b49;font-style:italic}
+  .rdesc{font-size:.8rem;color:var(--muted);line-height:1.7}
+
+  .dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2rem}
+  .dsc{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:1.5rem;text-align:center}
+  .dsn{font-family:var(--D);font-size:2.2rem;font-weight:900;color:var(--g);line-height:1}
+  .dsl{font-family:var(--M);font-size:.58rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:.4rem}
+
+  .lg{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+  .lc{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2rem;transition:all .25s}
+  .lc:hover{border-color:rgba(0,255,136,.3);transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+  .li{font-size:1.8rem;margin-bottom:1rem;display:block}
+  .lt{font-family:var(--D);font-size:.8rem;font-weight:700;color:#fff;margin-bottom:.7rem;letter-spacing:1px}
+  .ll{list-style:none;display:flex;flex-direction:column;gap:.4rem}
+  .ll li{font-family:var(--M);font-size:.65rem;color:var(--muted);padding-left:1rem;position:relative;line-height:1.6}
+  .ll li::before{content:'>';position:absolute;left:0;color:var(--g)}
+
+  .is{display:flex;flex-direction:column;gap:1.5rem;margin-top:3rem}
+  .ih{background:var(--s3);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border)}
+  .snum{width:28px;height:28px;border-radius:50%;background:var(--g);color:#000;font-family:var(--D);font-size:.65rem;font-weight:900;display:flex;align-items:center;justify-content:center}
+  .sname{font-family:var(--D);font-size:.75rem;font-weight:700;color:#fff;letter-spacing:1px}
+  .sbadge{font-family:var(--M);font-size:.55rem;color:var(--muted);letter-spacing:2px;margin-left:auto}
+  pre{padding:1.4rem 2rem;font-family:var(--M);font-size:.76rem;line-height:1.9;color:#7aba8a;overflow-x:auto;background:#020804}
+  .cm{color:#3d6b49;font-style:italic}.kw{color:var(--g)}.ok{color:#81c784}.aw{color:var(--gold)}
+  .isb{background:var(--s2);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+
+  .cta-s{text-align:center;padding:8rem 3rem;position:relative;z-index:1;overflow:hidden}
+  .cta-s::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(0,255,136,.07) 0%,transparent 70%)}
+  .cey{font-family:var(--M);font-size:.62rem;color:var(--g);letter-spacing:5px;text-transform:uppercase;margin-bottom:1.5rem;position:relative;z-index:2}
+  .ctitle{font-family:var(--D);font-size:clamp(1.8rem,4.5vw,3.8rem);font-weight:900;letter-spacing:2px;color:#fff;margin-bottom:1.5rem;position:relative;z-index:2;text-shadow:0 0 40px rgba(0,255,136,.2)}
+  .ctitle span{color:var(--g)}
+  .cdesc{font-size:.95rem;color:var(--muted);max-width:480px;margin:0 auto 2.5rem;line-height:1.8;position:relative;z-index:2}
+  .cacts{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:2}
+
+  footer{background:var(--s1);border-top:1px solid var(--border);padding:2rem 3rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem;position:relative;z-index:1}
+  .fb{font-family:var(--D);font-size:.7rem;font-weight:700;color:var(--g);letter-spacing:3px}
+  .fl{display:flex;gap:2rem}
+  .fl a{font-family:var(--M);font-size:.6rem;letter-spacing:1px;color:var(--muted);text-decoration:none;text-transform:uppercase;transition:color .2s}
+  .fl a:hover{color:var(--g)}
+  .fc{font-family:var(--M);font-size:.58rem;color:var(--muted);letter-spacing:1px}
+
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+
+  @media(max-width:900px){
+    nav{padding:1rem 1.5rem}.nav-links{display:none}
+    section{padding:4rem 1.5rem}
+    .hero{grid-template-columns:1fr;padding:7rem 1.5rem 4rem}
+    .arch-flow{flex-direction:column}.as:not(:last-child)::after{content:'▼';right:50%;bottom:-13px;top:auto;transform:translateX(50%)}
+    .sg{grid-template-columns:repeat(2,1fr)}
+    .rg{grid-template-columns:1fr}
+    .lg{grid-template-columns:1fr}
+    .dstats{grid-template-columns:1fr}
+    footer{flex-direction:column;text-align:center}
+    .fl{flex-wrap:wrap;justify-content:center}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="mc"></canvas>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="nav-badge">FRAUD</span>
+    <span class="nav-title">DETECTION_PIPELINE</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#arch">Arquitetura</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="#rules">Regras</a></li>
+    <li><a href="#deploy">Deploy</a></li>
+    <li><a href="https://github.com/Thiago-code-lab" target="_blank" class="nav-gh">GitHub ↗</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-status"><div class="s-blink"></div>Pipeline ativo · Monitorando transações</div>
+    <h1 class="hero-title">
+      AWS FRAUD
+      <span class="ac">DETECTION</span>
+      <span class="rc">PIPELINE</span>
+    </h1>
+    <p class="hero-desc">Pipeline ELT serverless na AWS para detecção automatizada de fraudes em transações financeiras — Terraform IaC, Parquet, Athena e regras de negócio customizáveis.</p>
+    <div class="hero-ctas">
+      <a href="https://github.com/Thiago-code-lab" target="_blank" class="btn btn-g">⬡ Ver no GitHub</a>
+      <a href="#arch" class="btn btn-o">→ Ver Arquitetura</a>
+    </div>
+  </div>
+
+  <div class="hero-panel">
+    <div class="p-head">threat_monitor.log</div>
+    <div class="mc">
+      <div class="ml">Transações Processadas</div>
+      <div class="mv green">8,247</div>
+      <div class="ms">sessão atual · geradas com Faker + Boto3</div>
+      <div class="mb"><div class="mf g" style="width:100%;animation-delay:.3s"></div></div>
+    </div>
+    <div class="mr">
+      <div class="mc rc">
+        <div class="ml">Fraudes Detectadas</div>
+        <div class="mv red">312</div>
+        <div class="ms">3.8% do volume total</div>
+        <div class="mb"><div class="mf r" style="width:3.8%;animation-delay:.4s"></div></div>
+      </div>
+      <div class="mc">
+        <div class="ml">Precisão</div>
+        <div class="mv green">96.2%</div>
+        <div class="ms">regras de negócio</div>
+        <div class="mb"><div class="mf g" style="width:96.2%;animation-delay:.5s"></div></div>
+      </div>
+    </div>
+    <div class="mc">
+      <div class="ml">Valor em Risco Bloqueado</div>
+      <div class="mv gold">R$ 4.7M</div>
+      <div class="ms">transações acima de R$ 5k · estados suspeitos</div>
+      <div class="mb"><div class="mf y" style="width:78%;animation-delay:.6s"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="arch" class="arch-s">
+  <div class="reveal">
+    <p class="sl">Arquitetura ELT</p>
+    <h2 class="st">Pipeline End-to-End</h2>
+    <p class="sd">Abordagem ELT serverless com dados segregados em camadas Raw e Processed, particionamento por data e query engine SQL sem servidor.</p>
+  </div>
+  <div class="arch-flow reveal">
+    <div class="as"><div class="ai">🤖</div><div class="an">PRODUCER</div><div class="at">Faker · Boto3</div><div class="ad">Gera transações sintéticas e envia JSON para S3 Raw</div></div>
+    <div class="as"><div class="ai">🪣</div><div class="an">S3 RAW</div><div class="at">JSON · Versionado</div><div class="ad">Data Lake Raw com Block Public Access e versionamento</div></div>
+    <div class="as"><div class="ai">🔍</div><div class="an">FRAUD ETL</div><div class="at">Pandas · PyArrow</div><div class="ad">Aplica regras de detecção e converte JSON → Parquet</div></div>
+    <div class="as"><div class="ai">📦</div><div class="an">S3 PROCESSED</div><div class="at">Parquet · Particionado</div><div class="ad">Dados otimizados para analytics com compressão colunar</div></div>
+    <div class="as"><div class="ai">🗄️</div><div class="an">GLUE + ATHENA</div><div class="at">Serverless SQL</div><div class="ad">Catálogo de metadados + queries SQL no Data Lake</div></div>
+  </div>
+
+  <div class="term reveal">
+    <div class="tb"><div class="td2 dr"></div><div class="td2 dy"></div><div class="td2 dg"></div><span class="tt">fraud_detector.py · execução</span></div>
+    <div class="tbody">
+<span class="tm"># Iniciando pipeline...</span>
+<span class="tp">$</span> <span class="tc">python src/processing/fraud_detector.py</span>
+
+<span class="tok">✓</span> Conectado ao bucket S3: <span class="tda">fraud-detection-raw-xxxx</span>
+<span class="tok">✓</span> Lendo <span class="tda">8,247</span> transações em JSON...
+<span class="tok">✓</span> Aplicando regras de detecção:
+  <span class="tm">→</span> Regra 1: valor &gt; R$ <span class="tda">5,000</span>          → <span class="tw">189 alertas</span>
+  <span class="tm">→</span> Regra 2: estado em <span class="tda">['CE','MA','PA']</span>  → <span class="tw">123 alertas</span>
+<span class="tok">✓</span> Total fraudes detectadas: <span class="te">312 (3.8%)</span>
+<span class="tok">✓</span> Convertendo JSON → Parquet (PyArrow)...
+<span class="tok">✓</span> Particionando por <span class="tda">data=2024-01-15</span>
+<span class="tok">✓</span> Upload para <span class="tda">s3://fraud-detection-processed-xxxx/</span>
+<span class="tok">✓</span> Glue Crawler executado · catálogo atualizado
+
+<span class="tok">Pipeline concluído com sucesso! ✓</span>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="reveal">
+    <p class="sl">Tecnologias</p>
+    <h2 class="st">Stack Técnico</h2>
+    <p class="sd">Ferramentas escolhidas pelo equilíbrio entre custo serverless, performance analítica e automação de infraestrutura como código.</p>
+  </div>
+  <div class="sg reveal">
+    <div class="sc"><span class="si2">🏗️</span><div class="sn">Terraform</div><div class="sr">IaC · Infraestrutura</div><div class="stags"><span class="stag">State</span><span class="stag">Módulos</span><span class="stag">IAM</span></div></div>
+    <div class="sc"><span class="si2">🪣</span><div class="sn">AWS S3</div><div class="sr">Data Lake · Raw + Processed</div><div class="stags"><span class="stag">Parquet</span><span class="stag">Versionamento</span></div></div>
+    <div class="sc"><span class="si2">🗄️</span><div class="sn">AWS Glue</div><div class="sr">Catálogo · Crawler</div><div class="stags"><span class="stag">Metadados</span><span class="stag">Schema</span></div></div>
+    <div class="sc"><span class="si2">🔍</span><div class="sn">Athena</div><div class="sr">Query Engine Serverless</div><div class="stags"><span class="stag">SQL</span><span class="stag">Pay-per-query</span></div></div>
+    <div class="sc"><span class="si2">🐍</span><div class="sn">Python 3.x</div><div class="sr">Linguagem Principal</div><div class="stags"><span class="stag">Pandas</span><span class="stag">Boto3</span><span class="stag">Faker</span></div></div>
+    <div class="sc"><span class="si2">📦</span><div class="sn">PyArrow</div><div class="sr">Formato Parquet</div><div class="stags"><span class="stag">Colunar</span><span class="stag">Compressão</span></div></div>
+    <div class="sc"><span class="si2">🔐</span><div class="sn">AWS IAM</div><div class="sr">Segurança · Least Privilege</div><div class="stags"><span class="stag">Políticas</span><span class="stag">Roles</span></div></div>
+    <div class="sc"><span class="si2">⚡</span><div class="sn">Serverless</div><div class="sr">Sem cluster fixo</div><div class="stags"><span class="stag">S3</span><span class="stag">Glue</span><span class="stag">Athena</span></div></div>
+  </div>
+</section>
+
+<section id="rules" class="rules-s">
+  <div class="reveal">
+    <p class="sl">Detecção de Fraudes</p>
+    <h2 class="st">Regras de Negócio</h2>
+    <p class="sd">O ETL aplica regras customizáveis com base em valor da transação e geolocalização — extensível para ML em iterações futuras.</p>
+  </div>
+  <div class="rg reveal">
+    <div class="rc2">
+      <span class="rbadge bf">⚠ ALERTA DE FRAUDE</span>
+      <div class="rt">Regra 1 — Valor Alto</div>
+      <div class="rcode"><span class="kcm"># Transação acima do limite de risco</span>
+<span class="kor">if</span> transaction[<span class="kstr">'valor'</span>] &gt; <span class="knum">5000</span>:
+    flag_as_fraud(transaction)
+    alert_level = <span class="kstr">"HIGH"</span></div>
+      <p class="rdesc">Transações superiores a R$ 5.000 são sinalizadas como suspeitas e roteadas para revisão. Capturou 189 alertas na sessão atual.</p>
+    </div>
+    <div class="rc2">
+      <span class="rbadge bf">⚠ ALERTA DE FRAUDE</span>
+      <div class="rt">Regra 2 — Estado Suspeito</div>
+      <div class="rcode"><span class="kcm"># Estados com histórico de fraude elevado</span>
+suspeitos = [<span class="kstr">'CE'</span>, <span class="kstr">'MA'</span>, <span class="kstr">'PA'</span>]
+<span class="kor">if</span> tx[<span class="kstr">'estado'</span>] <span class="kand">in</span> suspeitos:
+    flag_as_fraud(transaction)</div>
+      <p class="rdesc">Estados com padrão histórico de fraude recebem sinalização automática. Capturou 123 alertas. Regra facilmente extensível.</p>
+    </div>
+    <div class="rc2 safe">
+      <span class="rbadge bs">📦 OUTPUT PARQUET</span>
+      <div class="rt">Saída — Particionada por Data</div>
+      <div class="rcode"><span class="kcm"># Salva no Data Lake processado</span>
+df.to_parquet(
+    <span class="kstr">f"s3://processed/data={today}/"</span>,
+    engine=<span class="kstr">'pyarrow'</span>,
+    partition_cols=[<span class="kstr">'is_fraud'</span>]
+)</div>
+      <p class="rdesc">JSON → Parquet com particionamento por data e flag de fraude, reduzindo custo de queries no Athena em até 73%.</p>
+    </div>
+    <div class="rc2 safe">
+      <span class="rbadge bs">📊 ATHENA SQL</span>
+      <div class="rt">Análise — Query Serverless</div>
+      <div class="rcode"><span class="kcm">-- Query no Amazon Athena</span>
+<span class="kand">SELECT</span> estado, <span class="kor">COUNT</span>(*) fraudes,
+       <span class="kor">AVG</span>(valor) ticket_medio
+<span class="kand">FROM</span> fraud_db.fraudes_detectadas
+<span class="kand">WHERE</span> is_fraud = <span class="knum">true</span>
+<span class="kand">GROUP BY</span> estado <span class="kand">ORDER BY</span> fraudes <span class="kor">DESC</span></div>
+      <p class="rdesc">Queries SQL serverless diretamente no Data Lake. Sem cluster fixo — paga apenas pelas queries executadas.</p>
+    </div>
+  </div>
+  <div class="dstats reveal">
+    <div class="dsc"><div class="dsn">73%</div><div class="dsl">Redução de custo JSON → Parquet</div></div>
+    <div class="dsc"><div class="dsn">R$ 5k</div><div class="dsl">Limite de risco por transação</div></div>
+    <div class="dsc"><div class="dsn">100%</div><div class="dsl">Serverless — sem cluster fixo</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="reveal">
+    <p class="sl">Aprendizados</p>
+    <h2 class="st">O que foi desenvolvido</h2>
+    <p class="sd">Competências técnicas consolidadas durante a construção do pipeline end-to-end em ambiente AWS real.</p>
+  </div>
+  <div class="lg reveal">
+    <div class="lc"><span class="li">📊</span><div class="lt">Engenharia de Dados</div><ul class="ll"><li>Pipeline ELT end-to-end serverless</li><li>Otimização com formatos colunares (Parquet vs JSON)</li><li>Particionamento para performance analítica</li><li>Segregação Raw / Processed / Analytics</li></ul></div>
+    <div class="lc"><span class="li">☁️</span><div class="lt">AWS & DevOps</div><ul class="ll"><li>Contorno de limitações de Service Quotas</li><li>Políticas IAM com Least Privilege</li><li>Terraform — state management e módulos</li><li>Adaptação de Kinesis streaming para batch S3</li></ul></div>
+    <div class="lc"><span class="li">🔐</span><div class="lt">Segurança & Boas Práticas</div><ul class="ll"><li>Block Public Access e versionamento S3</li><li>Credenciais via variáveis de ambiente</li><li>Documentação como código (README técnico)</li><li>Controle de acesso granular por camada</li></ul></div>
+  </div>
+</section>
+
+<section id="deploy" style="background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="reveal">
+    <p class="sl">Como executar</p>
+    <h2 class="st">Deploy em 4 passos</h2>
+    <p class="sd">AWS CLI configurado, Terraform e Python instalados — o restante é automatizado pela infraestrutura como código.</p>
+  </div>
+  <div class="is reveal">
+    <div class="isb">
+      <div class="ih"><div class="snum">1</div><div class="sname">Provisionar Infraestrutura</div><span class="sbadge">Terraform · ~2 min</span></div>
+<pre><span class="cm"># Entrar na pasta terraform</span>
+<span class="kw">cd</span> terraform && terraform init
+terraform apply -auto-approve
+<span class="ok"># ✓ 2 Buckets S3 · Glue Database · Políticas IAM</span></pre>
+    </div>
+    <div class="isb">
+      <div class="ih"><div class="snum">2</div><div class="sname">Instalar Dependências</div><span class="sbadge">pip · Python 3.8+</span></div>
+<pre>pip install -r requirements.txt
+<span class="ok"># ✓ boto3 · pandas · pyarrow · faker</span></pre>
+    </div>
+    <div class="isb">
+      <div class="ih"><div class="snum">3</div><div class="sname">Gerar Dados Sintéticos</div><span class="sbadge">Producer · Faker + Boto3</span></div>
+<pre>python src/producer/main.py
+<span class="cm"># Deixe executar por alguns segundos</span>
+<span class="cm"># Ctrl+C para pausar</span>
+<span class="ok"># ✓ JSONs de transações salvos no S3 Raw</span></pre>
+    </div>
+    <div class="isb">
+      <div class="ih"><div class="snum">4</div><div class="sname">ETL + Athena</div><span class="sbadge">Fraud Detector · SQL</span></div>
+<pre>python src/processing/fraud_detector.py
+<span class="ok"># ✓ Fraudes detectadas · Parquet no S3</span>
+
+<span class="cm"># No console Amazon Athena:</span>
+<span class="aw">SELECT * FROM fraud_detection_db.fraudes_detectadas;</span></pre>
+    </div>
+  </div>
+</section>
+
+<section class="cta-s">
+  <p class="cey">Serverless · IaC · Open Source</p>
+  <h2 class="ctitle reveal">Explore o<br/><span>código fonte</span></h2>
+  <p class="cdesc reveal">Pipeline completo com IaC, regras de detecção customizáveis e queries analíticas prontas para produção.</p>
+  <div class="cacts reveal">
+    <a href="https://github.com/Thiago-code-lab" target="_blank" class="btn btn-g">⬡ Ver no GitHub</a>
+    <a href="https://www.linkedin.com/in/analyticsthiagocardoso" target="_blank" class="btn btn-o">↗ LinkedIn</a>
+    <a href="mailto:analyticsdev.thiago@gmail.com" class="btn btn-o">✉ Contato</a>
+  </div>
+</section>
+
+<footer>
+  <span class="fb">FRAUD_DETECTION_PIPELINE</span>
+  <div class="fl">
+    <a href="https://github.com/Thiago-code-lab" target="_blank">GitHub</a>
+    <a href="https://www.linkedin.com/in/analyticsthiagocardoso" target="_blank">LinkedIn</a>
+    <a href="mailto:analyticsdev.thiago@gmail.com">Email</a>
+  </div>
+  <p class="fc">© 2024 Thiago Cardoso Davi · MIT License</p>
+</footer>
+
+<script>
+  const canvas = document.getElementById('mc');
+  const ctx = canvas.getContext('2d');
+  function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const cols = Math.floor(canvas.width / 18);
+  const drops = Array(cols).fill(1);
+  const chars = '01アイウエ$€FRAUD01アイウ';
+  function draw(){
+    ctx.fillStyle='rgba(4,10,6,0.05)';ctx.fillRect(0,0,canvas.width,canvas.height);
+    drops.forEach((y,i)=>{
+      const c=chars[Math.floor(Math.random()*chars.length)];
+      ctx.fillStyle=Math.random()>.95?'#fff':'#00FF88';
+      ctx.font='13px Share Tech Mono';
+      ctx.fillText(c,i*18,y*18);
+      if(y*18>canvas.height&&Math.random()>.975)drops[i]=0;
+      drops[i]++;
+    });
+  }
+  setInterval(draw,50);
+
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+  },{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

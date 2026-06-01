@@ -1,0 +1,7 @@
+*.html linguist-vendored
+*.css linguist-vendored
+*.js linguist-vendored
+*.ps1 linguist-vendored
+*.psm1 linguist-vendored
+*.txt linguist-vendored
+*.md linguist-documentation

@@ -6,6 +6,16 @@
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 
+<div align="center">
+
+<a href="https://www.cloudstudy.com.br/">
+  <img src="https://img.shields.io/badge/🌐_CloudStudy-cloudstudy.com.br-2563EB?style=for-the-badge" />
+</a>
+
+<a href="https://www.instagram.com/cloudstudy.ai/">
+  <img src="https://img.shields.io/badge/Instagram-@cloudstudy.ai-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
+</a>
+
 <img width="653" height="382" alt="Image" src="https://github.com/user-attachments/assets/7241d016-bf9e-4c3d-8762-18a9f39e1b59" />
 
 **Pipeline de Engenharia de Dados End-to-End para Detecção de Fraudes em Transações Financeiras**

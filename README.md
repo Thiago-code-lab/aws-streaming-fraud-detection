@@ -3,7 +3,7 @@
   <p><strong>Pipeline educacional de Engenharia de Dados que gera transações sintéticas, avalia sinais de risco com regras explicáveis e disponibiliza os resultados para análise com Amazon S3, Parquet, AWS Glue Data Catalog e Amazon Athena.</strong></p>
   <p>Português | <a href="./README.en.md">English</a></p>
 
-  <img width="653" height="382" alt="Arquitetura do pipeline de detecção de fraudes na AWS" src="https://github.com/user-attachments/assets/7241d016-bf9e-4c3d-8762-18a9f39e1b59" />
+<img width="1639" height="960" alt="Image" src="https://github.com/user-attachments/assets/1605ab9a-a2af-479e-8d7a-56b0bde2a17f" />
 
 <p>
   <a href="https://aws.amazon.com/"><img src="https://img.shields.io/badge/AWS-Data%20Engineering-232F3E" alt="AWS" /></a>

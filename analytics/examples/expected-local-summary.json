@@ -1,0 +1,4 @@
+{
+  "transactions_analyzed": 1000,
+  "note": "As contagens variam quando os limites mudam. Use --seed 42 para dados determinísticos com a configuração atual das regras."
+}

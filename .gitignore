@@ -3,6 +3,9 @@
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+*.tfvars
+*.tfplan
+*.tfplan.*
 
 # Python
 __pycache__/
@@ -28,6 +31,7 @@ wheels/
 
 # Virtual Environment
 venv/
+.venv/
 env/
 ENV/
 
@@ -49,6 +53,14 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Generated local demo data
+data/local/
+htmlcov/
+.coverage
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 
 # AWS credentials
 aws-credentials.json

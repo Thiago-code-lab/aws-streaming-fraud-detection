@@ -1,0 +1,12 @@
+aws_region                 = "us-east-1"
+project_name               = "fraud-detection"
+unique_suffix              = "change-me"
+enable_streaming           = false
+kinesis_shard_count        = 1
+bucket_versioning_enabled  = true
+allow_bucket_force_destroy = false
+log_retention_days         = 14
+
+tags = {
+  Purpose = "education"
+}

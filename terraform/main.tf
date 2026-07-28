@@ -1,111 +1,43 @@
-# --- Data Lake (Armazenamento) ---
+module "storage" {
+  source = "./modules/storage"
 
-# Bucket para dados brutos (Raw)
-resource "aws_s3_bucket" "raw_bucket" {
-  bucket_prefix = "fraud-detection-raw-" # Garante nome único global
-  force_destroy = true                   # PERMITE DELETAR MESMO COM ARQUIVOS
+  name_prefix                   = local.name_prefix
+  bucket_versioning_enabled     = var.bucket_versioning_enabled
+  allow_bucket_force_destroy    = var.allow_bucket_force_destroy
+  noncurrent_version_expiration = 30
+  tags                          = local.common_tags
 }
 
-# Bucket para dados tratados (Processed)
-resource "aws_s3_bucket" "processed_bucket" {
-  bucket_prefix = "fraud-detection-processed-"
-  force_destroy = true
+module "streaming" {
+  source = "./modules/streaming"
+  count  = var.enable_streaming ? 1 : 0
+
+  name_prefix         = local.name_prefix
+  kinesis_shard_count = var.kinesis_shard_count
+  tags                = local.common_tags
 }
 
-# Bloqueio de Acesso Público (Segurança Padrão DevSecOps)
-resource "aws_s3_bucket_public_access_block" "raw_block" {
-  bucket = aws_s3_bucket.raw_bucket.id
+module "catalog" {
+  source = "./modules/catalog"
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  database_name       = replace("${var.project_name}_${var.environment}", "-", "_")
+  processed_bucket_id = module.storage.processed_bucket_id
+  table_name          = "fraud_assessments"
 }
 
-resource "aws_s3_bucket_public_access_block" "processed_block" {
-  bucket = aws_s3_bucket.processed_bucket.id
+module "processing" {
+  source = "./modules/processing"
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  name_prefix          = local.name_prefix
+  raw_bucket_arn       = module.storage.raw_bucket_arn
+  processed_bucket_arn = module.storage.processed_bucket_arn
+  tags                 = local.common_tags
 }
 
+module "observability" {
+  source = "./modules/observability"
 
-# --- Ingestão (Streaming) ---
-# BLOQUEADO TEMPORARIAMENTE (Aguardando liberação da AWS)
-/*
-resource "aws_kinesis_stream" "transaction_stream" {
-  name             = "fraud-detection-stream"
-  shard_count      = 1             # CUSTO MÍNIMO: Apenas 1 shard (~$0.015/hora)
-  retention_period = 24            # Mínimo de 24 horas para economizar armazenamento
-  
-  # Modo provisionado é mais barato para testes contínuos de baixo volume
-  stream_mode_details {
-    stream_mode = "PROVISIONED"
-  }
-
-  tags = {
-    Name = "TransactionStream"
-  }
+  name_prefix        = local.name_prefix
+  log_retention_days = var.log_retention_days
+  tags               = local.common_tags
 }
-*/
-
-# --- Analytics (Glue & Athena) ---
-
-# 1. Banco de Dados Virtual
-resource "aws_glue_catalog_database" "fraud_db" {
-  name = "fraud_detection_db"
-}
-
-# 2. Tabela apontando para o S3 Processed
-resource "aws_glue_catalog_table" "frauds_table" {
-  database_name = aws_glue_catalog_database.fraud_db.name
-  name          = "fraudes_detectadas"
-  
-  table_type = "EXTERNAL_TABLE"
-
-  parameters = {
-    "classification" = "parquet"
-  }
-
-  storage_descriptor {
-    location      = "s3://${aws_s3_bucket.processed_bucket.bucket}/fraudes_detectadas/"
-    input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
-
-    ser_de_info {
-      name                  = "my-stream"
-      serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
-      parameters = {
-        "serialization.format" = "1"
-      }
-    }
-
-    # Schema dos dados (Colunas)
-    columns {
-      name = "id_transacao"
-      type = "string"
-    }
-    columns {
-      name = "cliente"
-      type = "string"
-    }
-    columns {
-      name = "valor"
-      type = "double"
-    }
-    columns {
-      name = "estado"
-      type = "string"
-    }
-    columns {
-      name = "timestamp"
-      type = "string"
-    }
-    columns {
-      name = "processed_at"
-      type = "timestamp"  
-    }
-  } 
-} 

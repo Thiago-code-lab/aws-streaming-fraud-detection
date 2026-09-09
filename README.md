@@ -11,13 +11,25 @@
   <a href="https://developer.hashicorp.com/terraform"><img src="https://img.shields.io/badge/Terraform-1.6+-7B42BC" alt="Terraform 1.6+" /></a>
 </p>
 
-<a href="https://www.udemy.com/course/engenharia-de-dados-na-aws-do-zero-aos-projetos-reais/?referralCode=E28670B9116BA68E08A9">
-  <img
-    src="https://img.shields.io/badge/Curso%20na%20Udemy-A435F0?style=for-the-badge&logo=udemy&logoColor=white"
-    alt="Curso na Udemy"
-    width="200"
-  />
-</a>
+<div align="center">
+  <a href="https://www.udemy.com/course/engenharia-de-dados-na-aws-do-zero-aos-projetos-reais/?referralCode=E28670B9116BA68E08A9">
+    <img
+      src="https://img.shields.io/badge/Curso%20na%20Udemy-A435F0?style=for-the-badge&logo=udemy&logoColor=white"
+      alt="Curso na Udemy"
+      width="230"
+      height="40"
+    />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://chat.whatsapp.com/Lsuexbkt1oELAGX8nCH2La?mode=gi_t">
+    <img
+      src="https://img.shields.io/badge/Grupo%20VIP%20CloudStudy-25D366?style=for-the-badge&logo=whatsapp&logoColor=white"
+      alt="Grupo VIP CloudStudy no WhatsApp"
+      width="230"
+      height="40"
+    />
+  </a>
+</div>
 
 <p>
   <a href="#visao-geral">Visão geral</a> ·
